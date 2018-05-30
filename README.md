@@ -1,3 +1,5 @@
+> NOTE: this is a fork of `bindings` which is intended to be used for `nodejs-mobile` projects that are then bundled/minified with `noderify`.
+
 node-bindings
 =============
 ### Helper module for loading your native module's .node file

@@ -8,32 +8,32 @@ var fs = require('fs')
   , join = path.join
   , dirname = path.dirname
   , exists = ((fs.accessSync && function (path) { try { fs.accessSync(path); } catch (e) { return false; } return true; })
-      || fs.existsSync || path.existsSync)
+    || fs.existsSync || path.existsSync)
   , defaults = {
-        arrow: process.env.NODE_BINDINGS_ARROW || ' → '
-      , compiled: process.env.NODE_BINDINGS_COMPILED_DIR || 'compiled'
-      , platform: process.platform
-      , arch: process.arch
-      , version: process.versions.node
-      , bindings: 'bindings.node'
-      , try: [
-          // node-gyp's linked version in the "build" dir
-          [ 'module_root', 'build', 'bindings' ]
-          // node-waf and gyp_addon (a.k.a node-gyp)
-        , [ 'module_root', 'build', 'Debug', 'bindings' ]
-        , [ 'module_root', 'build', 'Release', 'bindings' ]
-          // Debug files, for development (legacy behavior, remove for node v0.9)
-        , [ 'module_root', 'out', 'Debug', 'bindings' ]
-        , [ 'module_root', 'Debug', 'bindings' ]
-          // Release files, but manually compiled (legacy behavior, remove for node v0.9)
-        , [ 'module_root', 'out', 'Release', 'bindings' ]
-        , [ 'module_root', 'Release', 'bindings' ]
-          // Legacy from node-waf, node <= 0.4.x
-        , [ 'module_root', 'build', 'default', 'bindings' ]
-          // Production "Release" buildtype binary (meh...)
-        , [ 'module_root', 'compiled', 'version', 'platform', 'arch', 'bindings' ]
-        ]
-    }
+    arrow: process.env.NODE_BINDINGS_ARROW || ' → '
+    , compiled: process.env.NODE_BINDINGS_COMPILED_DIR || 'compiled'
+    , platform: process.platform
+    , arch: process.arch
+    , version: process.versions.node
+    , bindings: 'bindings.node'
+    , try: [
+      // node-gyp's linked version in the "build" dir
+      ['module_root', 'node_modules', 'name', 'build', 'bindings']
+      // node-waf and gyp_addon (a.k.a node-gyp)
+      , ['module_root', 'node_modules', 'name', 'build', 'Debug', 'bindings']
+      , ['module_root', 'node_modules', 'name', 'build', 'Release', 'bindings']
+      // Debug files, for development (legacy behavior, remove for node v0.9)
+      , ['module_root', 'node_modules', 'name', 'out', 'Debug', 'bindings']
+      , ['module_root', 'node_modules', 'name', 'Debug', 'bindings']
+      // Release files, but manually compiled (legacy behavior, remove for node v0.9)
+      , ['module_root', 'node_modules', 'name', 'out', 'Release', 'bindings']
+      , ['module_root', 'node_modules', 'name', 'Release', 'bindings']
+      // Legacy from node-waf, node <= 0.4.x
+      , ['module_root', 'node_modules', 'name', 'build', 'default', 'bindings']
+      // Production "Release" buildtype binary (meh...)
+      , ['module_root', 'node_modules', 'name', 'compiled', 'version', 'platform', 'arch', 'bindings']
+    ]
+  }
 
 /**
  * The main `bindings()` function loads the compiled bindings for a given module.
@@ -41,7 +41,7 @@ var fs = require('fs')
  * being invoked from, which is then used to find the root directory.
  */
 
-function bindings (opts) {
+function bindings(opts) {
 
   // Argument surgery
   if (typeof opts == 'string') {
@@ -51,7 +51,7 @@ function bindings (opts) {
   }
 
   // maps `defaults` onto `opts` object
-  Object.keys(defaults).map(function(i) {
+  Object.keys(defaults).map(function (i) {
     if (!(i in opts)) opts[i] = defaults[i];
   });
 
@@ -62,6 +62,7 @@ function bindings (opts) {
 
   // Ensure the given bindings name ends with .node
   if (path.extname(opts.bindings) != '.node') {
+    opts.name = opts.bindings;
     opts.bindings += '.node'
   }
 
@@ -72,7 +73,7 @@ function bindings (opts) {
     , b
     , err
 
-  for (; i<l; i++) {
+  for (; i < l; i++) {
     n = join.apply(null, opts.try[i].map(function (p) {
       return opts[p] || p
     }))
@@ -104,7 +105,7 @@ module.exports = exports = bindings
  * Optionally accepts an filename argument to skip when searching for the invoking filename
  */
 
-exports.getFileName = function getFileName (calling_file) {
+exports.getFileName = function getFileName(calling_file) {
   var origPST = Error.prepareStackTrace
     , origSTL = Error.stackTraceLimit
     , dummy = {}
@@ -113,13 +114,13 @@ exports.getFileName = function getFileName (calling_file) {
   Error.stackTraceLimit = 10
 
   Error.prepareStackTrace = function (e, st) {
-    for (var i=0, l=st.length; i<l; i++) {
+    for (var i = 0, l = st.length; i < l; i++) {
       fileName = st[i].getFileName()
       if (fileName !== __filename) {
         if (calling_file) {
-            if (fileName !== calling_file) {
-              return
-            }
+          if (fileName !== calling_file) {
+            return
+          }
         } else {
           return
         }
@@ -147,7 +148,7 @@ exports.getFileName = function getFileName (calling_file) {
  *   Out: /home/nate/node-native-module
  */
 
-exports.getRoot = function getRoot (file) {
+exports.getRoot = function getRoot(file) {
   var dir = dirname(file)
     , prev
   while (true) {
@@ -162,7 +163,7 @@ exports.getRoot = function getRoot (file) {
     if (prev === dir) {
       // Got to the top
       throw new Error('Could not find module root given file: "' + file
-                    + '". Do you have a `package.json` file? ')
+        + '". Do you have a `package.json` file? ')
     }
     // Try the parent dir next
     prev = dir
