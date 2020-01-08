@@ -1,5 +1,5 @@
 {
-  "name": "bindings-noderify-nodejs-mobile",
+  "name": "bindings",
   "description": "Helper module for loading your native module's .node file",
   "keywords": [
     "native",
@@ -10,7 +10,7 @@
     "c",
     "c++"
   ],
-  "version": "10.3.0",
+  "version": "10.3.0-1",
   "author": "staltz.com",
   "repository": {
     "type": "git",
